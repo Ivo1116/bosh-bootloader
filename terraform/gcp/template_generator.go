@@ -9,12 +9,13 @@ import (
 )
 
 type templates struct {
-	vars         string
-	jumpbox      string
-	boshDirector string
-	cfLB         string
-	cfDNS        string
-	concourseLB  string
+	vars               string
+	jumpbox            string
+	boshDirector       string
+	cfLB               string
+	cfDNS              string
+	concourseLB        string
+	firewallAgentDebug string
 }
 
 type TemplateGenerator struct {
@@ -35,7 +36,7 @@ func NewTemplateGenerator() TemplateGenerator {
 func (t TemplateGenerator) Generate(state storage.State) string {
 	tmpls := t.readTemplates()
 
-	template := strings.Join([]string{tmpls.vars, tmpls.boshDirector, tmpls.jumpbox}, "\n")
+	template := strings.Join([]string{tmpls.vars, tmpls.boshDirector, tmpls.jumpbox, tmpls.firewallAgentDebug}, "\n")
 
 	switch state.LB.Type {
 	case "concourse":
@@ -102,12 +103,13 @@ func (t TemplateGenerator) GenerateInstanceGroups(zoneList []string) string {
 
 func (t TemplateGenerator) readTemplates() templates {
 	listings := map[string]string{
-		"vars.tf":          "",
-		"jumpbox.tf":       "",
-		"bosh_director.tf": "",
-		"cf_lb.tf":         "",
-		"cf_dns.tf":        "",
-		"concourse_lb.tf":  "",
+		"vars.tf":                 "",
+		"jumpbox.tf":              "",
+		"bosh_director.tf":        "",
+		"cf_lb.tf":                "",
+		"cf_dns.tf":               "",
+		"concourse_lb.tf":         "",
+		"firewall_agent_debug.tf": "",
 	}
 
 	var errors []error
@@ -135,11 +137,12 @@ func (t TemplateGenerator) readTemplates() templates {
 	}
 
 	return templates{
-		vars:         listings["vars.tf"],
-		jumpbox:      listings["jumpbox.tf"],
-		boshDirector: listings["bosh_director.tf"],
-		cfLB:         listings["cf_lb.tf"],
-		cfDNS:        listings["cf_dns.tf"],
-		concourseLB:  listings["concourse_lb.tf"],
+		vars:               listings["vars.tf"],
+		jumpbox:            listings["jumpbox.tf"],
+		boshDirector:       listings["bosh_director.tf"],
+		cfLB:               listings["cf_lb.tf"],
+		cfDNS:              listings["cf_dns.tf"],
+		concourseLB:        listings["concourse_lb.tf"],
+		firewallAgentDebug: listings["firewall_agent_debug.tf"],
 	}
 }
