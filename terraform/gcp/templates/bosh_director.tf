@@ -171,53 +171,19 @@ output "internal_tag_name" {
   value = "${google_compute_firewall.internal.name}"
 }
 
-resource "google_compute_firewall" "jumpbox_agent_debug" {
-  name    = "${var.env_id}-jumpbox-agent-debug"
-  network = "${google_compute_network.bbl-network.name}"
+resource "google_compute_firewall" "allow_internal_bosh_agent" {
+  name    = "${var.env_id}-allow-internal-bosh-agent"
+  network = google_compute_network.bbl-network.name
 
   allow {
     protocol = "tcp"
     ports    = ["6868"]
   }
 
-  source_ranges = ["0.0.0.0/0"]
+  source_ranges = ["10.0.0.0/8"]
   target_tags   = ["${var.env_id}-jumpbox"]
 
-  priority   = 900
-  direction  = "INGRESS"
-  description = "Allow external access to jumpbox agent for debugging"
-}
-
-resource "google_compute_firewall" "jumpbox_ssh_ingress" {
-  name    = "${var.env_id}-jumpbox-ssh-ingress"
-  network = "${google_compute_network.bbl-network.name}"
-
-  allow {
-    protocol = "tcp"
-    ports    = ["22"]
-  }
-
-  source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["${var.env_id}-jumpbox"]
-
-  priority    = 900
-  direction   = "INGRESS"
-  description = "Allow external SSH access to jumpbox"
-}
-
-resource "google_compute_firewall" "jumpbox_ssh_egress" {
-  name    = "${var.env_id}-jumpbox-ssh-egress"
-  network = "${google_compute_network.bbl-network.name}"
-
-  allow {
-    protocol = "tcp"
-    ports    = ["22"]
-  }
-
-  destination_ranges = ["0.0.0.0/0"]
-  target_tags        = ["${var.env_id}-jumpbox"]
-
-  priority    = 900
-  direction   = "EGRESS"
-  description = "Allow SSH egress from jumpbox"
+  direction = "INGRESS"
+  priority  = 900
+  description = "Allow BOSH agent traffic (port 6868) from internal to jumpbox"
 }
