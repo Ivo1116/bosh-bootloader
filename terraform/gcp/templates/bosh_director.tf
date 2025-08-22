@@ -25,7 +25,7 @@ resource "google_compute_firewall" "external" {
     protocol = "tcp"
   }
 
-  target_tags = ["${var.env_id}-bosh-open"]
+  target_tags = ["${var.env_id}-bosh-open", "sec-by-def-admin-port-exception"]
 }
 
 resource "google_compute_firewall" "bosh-open" {
@@ -39,7 +39,43 @@ resource "google_compute_firewall" "bosh-open" {
     protocol = "tcp"
   }
 
-  target_tags = ["${var.env_id}-bosh-director"]
+  target_tags = ["${var.env_id}-bosh-director","sec-by-def-admin-port-exception"]
+}
+
+resource "google_compute_firewall" "bosh-egress-all" {
+  name    = "${var.env_id}-bosh-egress-all"
+  network = google_compute_network.bbl-network.name
+
+  direction = "EGRESS"
+
+  allow {
+    protocol = "all"
+  }
+
+  destination_ranges = ["0.0.0.0/0"]
+
+  target_tags = [
+    "${var.env_id}-bosh-director",
+    "sec-by-def-admin-port-exception"
+  ]
+}
+
+resource "google_compute_firewall" "jumpbox-egress-all" {
+  name    = "${var.env_id}-jumpbox-egress-all"
+  network = google_compute_network.bbl-network.name
+
+  direction = "EGRESS"
+
+  allow {
+    protocol = "all"
+  }
+
+  destination_ranges = ["0.0.0.0/0"]
+
+  target_tags = [
+    "${var.env_id}-jumpbox",
+    "sec-by-def-admin-port-exception"
+  ]
 }
 
 resource "google_compute_firewall" "bosh-director" {
@@ -169,21 +205,4 @@ output "director__tags" {
 
 output "internal_tag_name" {
   value = "${google_compute_firewall.internal.name}"
-}
-
-resource "google_compute_firewall" "allow_internal_bosh_agent" {
-  name    = "${var.env_id}-allow-internal-bosh-agent"
-  network = google_compute_network.bbl-network.name
-
-  allow {
-    protocol = "tcp"
-    ports    = ["6868"]
-  }
-
-  source_ranges = ["10.0.0.0/8"]
-  target_tags   = ["${var.env_id}-jumpbox"]
-
-  direction = "INGRESS"
-  priority  = 900
-  description = "Allow BOSH agent traffic (port 6868) from internal to jumpbox"
 }

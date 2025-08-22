@@ -38,11 +38,17 @@ resource "google_compute_firewall" "firewall-cf" {
 
   source_ranges = ["0.0.0.0/0"]
 
-  target_tags = ["${google_compute_backend_service.router-lb-backend-service.name}"]
+  target_tags = ["${google_compute_backend_service.router-lb-backend-service.name}", "sec-by-def-admin-port-exception"]
 }
 
 resource "google_compute_global_address" "cf-address" {
   name = "${var.env_id}-cf"
+}
+
+resource "google_compute_ssl_policy" "cf_ssl_policy" {
+  name            = "${var.env_id}-cf-ssl-policy"
+  profile         = "MODERN" 
+  min_tls_version = "TLS_1_2"
 }
 
 resource "google_compute_global_forwarding_rule" "cf-http-forwarding-rule" {
@@ -70,6 +76,8 @@ resource "google_compute_target_https_proxy" "cf-https-lb-proxy" {
   description      = "really a load balancer but listed as an https proxy"
   url_map          = "${google_compute_url_map.cf-https-lb-url-map.self_link}"
   ssl_certificates = ["${google_compute_ssl_certificate.cf-cert.self_link}"]
+
+  ssl_policy = google_compute_ssl_policy.cf_ssl_policy.self_link
 }
 
 resource "google_compute_ssl_certificate" "cf-cert" {
@@ -138,7 +146,7 @@ resource "google_compute_firewall" "cf-ssh-proxy" {
 
   source_ranges = ["0.0.0.0/0"]
 
-  target_tags = ["${google_compute_target_pool.cf-ssh-proxy.name}"]
+  target_tags = ["${google_compute_target_pool.cf-ssh-proxy.name}", "sec-by-def-admin-port-exception"]
 }
 
 resource "google_compute_target_pool" "cf-ssh-proxy" {
@@ -171,7 +179,7 @@ resource "google_compute_firewall" "cf-tcp-router" {
 
   source_ranges = ["0.0.0.0/0"]
 
-  target_tags = ["${google_compute_target_pool.cf-tcp-router.name}"]
+  target_tags = ["${google_compute_target_pool.cf-tcp-router.name}", "sec-by-def-admin-port-exception"]
 }
 
 resource "google_compute_address" "cf-tcp-router" {
